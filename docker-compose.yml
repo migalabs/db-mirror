@@ -1,0 +1,73 @@
+version: "3.7"
+
+networks:
+  cluster:
+
+services:
+  source-db:
+    image: postgres:${PG_VERSION:-14.1}-alpine
+    shm_size: 1g
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - ./data/source_db:/var/lib/postgresql/data
+    networks: [ cluster ]
+    ports:
+      - "${DB_SOURCE_PORT:-5432}:5432"
+    healthcheck:
+      test: pg_isready
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  
+  source-db-setup:
+    image: postgres:${PG_VERSION:-14.1}-alpine
+    shm_size: 1g
+    restart: "no"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - REPLICA_USERNAME=${REPLICA_USERNAME}
+      - REPLICA_PASSWORD=${REPLICA_PASSWORD}
+    volumes:
+      - ./data/source_db:/var/lib/postgresql/data
+      - ./source/conf_override.sh:/conf_override.sh
+    networks: [ cluster ]
+    entrypoint: ["/conf_override.sh"]
+  
+  mirror-db:
+    image: postgres:${PG_VERSION:-14.1}-alpine
+    shm_size: 1g
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - ./data/mirror_db:/var/lib/postgresql/data
+    networks: [ cluster ]
+    ports:
+      - "${DB_MIRROR_PORT:-5432}:5432"
+    healthcheck:
+      test: pg_isready
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  mirror-db-setup:
+    image: postgres:${PG_VERSION:-14.1}-alpine
+    shm_size: 1g
+    restart: "no"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - REPLICA_USERNAME=${REPLICA_USERNAME}
+      - REPLICA_PASSWORD=${REPLICA_PASSWORD}
+      - SOURCE_HOST=${SOURCE_HOST}
+      - SOURCE_PORT=${SOURCE_PORT}
+    volumes:
+      - ./data/mirror_db:/var/lib/postgresql/data
+      - ./mirror/copy_db.sh:/copy_db.sh
+    networks: [ cluster ]
+    entrypoint: ["/copy_db.sh"]
