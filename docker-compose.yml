@@ -12,7 +12,7 @@ services:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
     volumes:
-      - ./data/source_db:/var/lib/postgresql/data
+      - ${SOURCE_DB_PATH:-./data/source_db}:/var/lib/postgresql/data
     networks: [ cluster ]
     ports:
       - "${DB_SOURCE_PORT:-5432}:5432"
@@ -32,7 +32,7 @@ services:
       - REPLICA_USERNAME=${REPLICA_USERNAME}
       - REPLICA_PASSWORD=${REPLICA_PASSWORD}
     volumes:
-      - ./data/source_db:/var/lib/postgresql/data
+      - ${SOURCE_DB_PATH:-./data/source_db}:/var/lib/postgresql/data
       - ./source/conf_override.sh:/conf_override.sh
     networks: [ cluster ]
     entrypoint: ["/conf_override.sh"]
@@ -42,7 +42,7 @@ services:
     shm_size: 1g
     restart: on-failure
     volumes:
-      - ./data/mirror_db:/var/lib/postgresql/data
+      - ${MIRROR_DB_PATH:-./data/mirror_db}:/var/lib/postgresql/data
     networks: [ cluster ]
     ports:
       - "${DB_MIRROR_PORT:-5432}:5432"
@@ -63,7 +63,7 @@ services:
       - SOURCE_HOST=${SOURCE_HOST}
       - SOURCE_PORT=${SOURCE_PORT}
     volumes:
-      - ./data/mirror_db:/var/lib/postgresql/data
+      - ${MIRROR_DB_PATH:-./data/mirror_db}:/var/lib/postgresql/data
       - ./mirror/copy_db.sh:/copy_db.sh
     networks: [ cluster ]
     entrypoint: ["/copy_db.sh"]
