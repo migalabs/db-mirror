@@ -6,7 +6,7 @@ PGPASSWORD=$REPLICA_PASSWORD pg_basebackup \
 	-U $REPLICA_USERNAME \
 	-X stream \
 	-C \
-	-S replica_1 \
+	-S $REPLICA_NAME \
 	-v -R -W \
 	-D /var/lib/postgresql/data
 

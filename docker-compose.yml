@@ -59,6 +59,7 @@ services:
     environment:
       - REPLICA_USERNAME=${REPLICA_USERNAME}
       - REPLICA_PASSWORD=${REPLICA_PASSWORD}
+      - REPLICA_NAME=${REPLICA_NAME}
       - SOURCE_HOST=${SOURCE_HOST}
       - SOURCE_PORT=${SOURCE_PORT}
     volumes:
